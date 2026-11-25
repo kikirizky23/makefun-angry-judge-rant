@@ -80,6 +80,18 @@ function main(): void {
     process.exit(1);
   }
 
+  // A string match can still hide an encoding slip, so compare the
+  // byte length of what landed on disk with the rant's own byte
+  // length in UTF-8, and fail loudly if the two disagree.
+  const writtenBytes = Buffer.byteLength(onDisk, 'utf-8');
+  const expectedBytes = Buffer.byteLength(RANT, 'utf-8');
+  if (writtenBytes !== expectedBytes) {
+    process.stderr.write(
+      `rant: byte length mismatch on disk (${writtenBytes} bytes, expected ${expectedBytes})\n`,
+    );
+    process.exit(1);
+  }
+
   const digest = createHash('sha256').update(onDisk, 'utf-8').digest('hex');
   process.stdout.write(
     `rant: wrote ${target} (${countCharacters(RANT)} characters, sha256 ${digest})\n`,
